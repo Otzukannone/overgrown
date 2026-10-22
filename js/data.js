@@ -19,6 +19,34 @@ const LEVELS = [
   { name: 'Boss: The Great Drought', time: 95, target: 800, pw: 10, ph: 7, weather: 'dry',
     story: 'The final harvest. Dry skies, huge orders.\nAsk the Grocer to call the Pawang for rain - only a 40% chance!' },
 ];
+// Shared type tables (used by both the runtime and the level editor).
+const GROUND_TYPES = [
+  { id: 'grass', name: 'Grass',  color: '#4ade80' },
+  { id: 'dirt',  name: 'Dirt',   color: '#a0743c' },
+  { id: 'path',  name: 'Path',   color: '#9ca3af' },
+  { id: 'water', name: 'Water',  color: '#3b82f6' },
+];
+const OBJECT_TYPES = [
+  { id: 'start',  name: 'Start',   color: '#facc15' },
+  { id: 'bin',    name: 'Bin',     color: '#4a5568' },
+  { id: 'grocer', name: 'Grocer',  color: '#f59e0b' },
+  { id: 'tree',   name: 'Tree',    color: '#16a34a' },
+  { id: 'rock',   name: 'Rock',    color: '#6b7280' },
+  { id: 'fence',  name: 'Fence',   color: '#92400e' },
+];
+const EVENT_TYPES = [
+  { id: 'rain',    name: 'Rain',    color: '#60a5fa' },
+  { id: 'drought', name: 'Drought', color: '#a0743c' },
+  { id: 'frost',   name: 'Frost',  color: '#bfdbfe' },
+  { id: 'growth',  name: 'Growth',  color: '#22c55e' },
+  { id: 'pest',    name: 'Pest',    color: '#ef4444' },
+];
+// Objects the player cannot walk through.
+const SOLID_OBJECTS = ['tree', 'rock', 'fence', 'bin', 'grocer'];
+function findType(list, id) { for (const t of list) if (t.id === id) return t; return list[0]; }
+function keyOf(c, r) { return c + ',' + r; }
+function parseKey(k) { const p = k.split(',').map(Number); return { c: p[0], r: p[1] }; }
+
 const SHOP = [
   { id: 'bag',   name: 'Bigger Bag (+1)',        base: 70,  max: 3 },
   { id: 'boots', name: 'Fast Boots (+6% spd)',   base: 60,  max: 3 },

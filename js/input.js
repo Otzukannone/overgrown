@@ -7,6 +7,7 @@ addEventListener('keydown', e => {
     if (state === 'CONFIRM') closeDlg(false);
     else if (state === 'GROCER') state = 'PLAYING';
     else if (state === 'PLAYING' || state === 'INTRO' || state === 'SHOP') goLevels();
+    else if (state === 'EDITOR') { edClose(); }
     else if (state !== 'MENU') state = 'MENU';
     return;
   }
@@ -67,8 +68,9 @@ function plant() {
 }
 function interact() {
   const t = target(), k = t.c + ',' + t.r;
-  if (t.c === GROCER_TILE.col && t.r === GROCER_TILE.row) { state = 'GROCER'; return; }
-  if (t.c === bin.col && t.r === bin.row) {
+  const b = binTile(), g = grocerTile();
+  if (t.c === g.col && t.r === g.row) { state = 'GROCER'; return; }
+  if (t.c === b.col && t.r === b.row) {
     if (!player.bag.length) return toast('Bag is empty');
     const v = player.bag.reduce((s, c) => s + CROPS[c].value, 0);
     earned += v; player.bag = []; toast('+' + v + ' delivered!');

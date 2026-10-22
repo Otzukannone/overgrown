@@ -15,10 +15,11 @@ function loadSlot(n) { const d = readSlot(n); curSlot = n; money = d.money; up =
 
 function ask(msg, yes, back) { dlg = { msg, yes, back, sel: 0 }; state = 'CONFIRM'; }
 function closeDlg(yes) { const d = dlg; dlg = null; if (yes) d.yes(); else state = d.back; }
-function menuItems() { return ['NEW GAME'].concat(anySave() ? ['LOAD'] : [], ['OPTIONS', 'EXIT']); }
+function menuItems() { return ['NEW GAME'].concat(anySave() ? ['LOAD'] : [], ['LEVEL EDITOR', 'OPTIONS', 'EXIT']); }
 function menuActivate(label) {
   if (label === 'NEW GAME') ask('Start a new game?', () => { slotMode = 'new'; slotSel = 0; state = 'SLOTS'; }, 'MENU');
   else if (label === 'LOAD') { slotMode = 'load'; slotSel = 0; state = 'SLOTS'; }
+  else if (label === 'LEVEL EDITOR') edNew();
   else if (label === 'OPTIONS') state = 'OPTIONS';
   else { try { window.close(); } catch (_) {} state = 'EXIT'; }
 }
@@ -86,25 +87,61 @@ let drips = [];
 
 const maxBag = () => 4 + up.bag + (lb.bag ? 2 : 0);
 const speed = () => 150 * (1 + up.boots * 0.06) * (weather() === 'rain' && LEVELS[li].heavy ? 0.8 : 1) * (lb.shoes ? 1.15 : 1) * (ab.drink ? 1.12 : 1);
-const growMul = () => (1 + up.fert * 0.06) * ({ rain: 1.3, dry: 0.6, clear: 1 }[weather()]) * (lb.fert ? 1.25 : 1);
-function weather() { return rainTimer > 0 || LEVELS[li].weather === 'rain' ? 'rain' : LEVELS[li].weather; }
+const growMul = () => (1 + up.fert * 0.06) * ({ rain: 1.3, dry: 0.6, clear: 1 }[weather()]) * (lb.fert ? 1.25 : 1) * (frostTimer > 0 ? 0.4 : 1) * (growthTimer > 0 ? 2 : 1);
+function weather() {
+  if (droughtTimer > 0) return 'dry';
+  return rainTimer > 0 || LEVELS[li].weather === 'rain' ? 'rain' : LEVELS[li].weather;
+}
 const cost = it => Math.round(it.base * (1 + (it.kind === 'level' ? 0 : up[it.id]) * 0.8));
 function toast(m) { toastMsg = m; toastT = 2.2; }
 
 function startLevel() {
   const L = LEVELS[li];
   crops = {}; timeLeft = L.time; earned = 0; rainTimer = 0; rainCd = 0; flash = 0; nextBolt = 6 + Math.random() * 6;
-  player.x = 385; player.y = 140; player.facing = 'DOWN'; player.bag = []; drips = [];
+  evFired = {}; pestTimer = 0; frostTimer = 0; droughtTimer = 0; growthTimer = 0; elapsedTime = 0;
+  const sp = startPos();
+  player.x = sp.x; player.y = sp.y; player.facing = 'DOWN'; player.bag = []; drips = [];
   if (!up[seed] && seed !== 'tomato') seed = 'tomato';
   lb = {}; ab = boost; boost = { drink: false, time: false }; if (ab.time) timeLeft += 10; camX = camY = 0; saveGame();
   state = 'PLAYING';
 }
+// ---------- Level map helpers ----------
+// Editor-authored levels carry `land` (rect), `ground`, `plots`, `objects`.
+// Built-in levels have none, so they fall back to the legacy centered rect.
+function landOrigin(L) {
+  const land = L && L.land;
+  if (!land) return null;
+  const ox = Math.floor((land.offset ? land.offset.x : 0) / T);
+  const oy = Math.floor((land.offset ? land.offset.y : 0) / T);
+  return { c: ox, r: oy, w: land.w, h: land.h };
+}
 function plot() {
   const L = LEVELS[li];
+  const o = landOrigin(L);
+  if (o) return { c0: o.c, r0: o.r, c1: o.c + o.w - 1, r1: o.r + o.h - 1 };
   const c0 = Math.floor((COLS - L.pw) / 2), r0 = 3;
   return { c0, r0, c1: c0 + L.pw - 1, r1: r0 + L.ph - 1 };
 }
-function isDirt(c, r) { const p = plot(); return c >= p.c0 && c <= p.c1 && r >= p.r0 && r <= p.r1; }
+function paintedPlots() {
+  const L = LEVELS[li];
+  return (L.plots && L.plots.length) ? L.plots : null;
+}
+function isDirt(c, r) {
+  const pp = paintedPlots();
+  if (pp) { for (const p of pp) if (p.c === c && p.r === r) return true; return false; }
+  const p = plot();
+  return c >= p.c0 && c <= p.c1 && r >= p.r0 && r <= p.r1;
+}
+function lvlGround(c, r) {
+  const L = LEVELS[li];
+  if (!L.ground) return 'grass';
+  return L.ground[keyOf(c, r)] || 'grass';
+}
+function lvlObjects() { return LEVELS[li].objects || {}; }
+function lvlObjectAt(c, r) { return lvlObjects()[keyOf(c, r)] || null; }
+function binTile() { const L = LEVELS[li]; return L.bin || bin; }
+function grocerTile() { const L = LEVELS[li]; return L.grocer || GROCER_TILE; }
+function startPos() { const L = LEVELS[li]; return L.start || { x: 385, y: 140 }; }
 function target() {
   let c = Math.floor((player.x + 15) / T), r = Math.floor((player.y + 15) / T);
   if (player.facing === 'UP') r--; if (player.facing === 'DOWN') r++;

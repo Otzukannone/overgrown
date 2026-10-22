@@ -18,6 +18,13 @@ function drawIcon(i, cx, cy) {
   if (i === 0) { ctx.strokeStyle = '#2f7d2f'; ctx.beginPath(); ctx.moveTo(cx, cy + 14); ctx.lineTo(cx, cy - 2); ctx.stroke(); leaf(cx - 9, cy - 4, -0.5); leaf(cx + 9, cy - 4, 0.5); }
   else if (i === 1) { ctx.fillStyle = '#f0866e'; ctx.beginPath(); ctx.arc(cx, cy + 3, 12, 0, 7); ctx.fill(); ctx.strokeStyle = '#8a3a2a'; ctx.stroke(); leaf(cx + 4, cy - 10, -0.6); }
   else if (i === 2) { ctx.strokeStyle = '#555'; ctx.fillStyle = '#9ca3af'; ctx.beginPath(); ctx.arc(cx, cy + 2, 11, 0, 7); ctx.fill(); ctx.stroke(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 11, cy + 2 + Math.sin(a) * 11); ctx.lineTo(cx + Math.cos(a) * 16, cy + 2 + Math.sin(a) * 16); ctx.stroke(); } ctx.fillStyle = '#e8b968'; ctx.beginPath(); ctx.arc(cx, cy + 2, 4, 0, 7); ctx.fill(); }
+  else if (i === 4) { // level editor map icon
+    ctx.strokeStyle = '#8a4a1c'; ctx.lineWidth = 2;
+    ctx.strokeRect(cx - 11, cy - 9, 22, 18);
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(cx - 11, cy - 9 + k * 6); ctx.lineTo(cx + 11, cy - 9 + k * 6); ctx.stroke(); }
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(cx - 11 + k * 11, cy - 9); ctx.lineTo(cx - 11 + k * 11, cy + 9); ctx.stroke(); }
+    ctx.fillStyle = '#facc15'; ctx.fillRect(cx + 6, cy - 9, 4, 10);
+  }
   else { ctx.fillStyle = '#8a4a1c'; ctx.fillRect(cx - 12, cy - 10, 16, 26); ctx.strokeStyle = '#f59e0b'; ctx.beginPath(); ctx.moveTo(cx - 2, cy + 3); ctx.lineTo(cx + 16, cy + 3); ctx.moveTo(cx + 10, cy - 3); ctx.lineTo(cx + 16, cy + 3); ctx.lineTo(cx + 10, cy + 9); ctx.stroke(); }
 }
 function bigTitle(s, x, y, size) {
@@ -41,7 +48,7 @@ function drawMenu() {
   bigTitle('FARM', W / 2, by + 22, 84);
   bigTitle('RUSH', W / 2, by + 112, 84);
   // buttons
-  const items = menuItems(), n = items.length, ICON = { 'NEW GAME': 0, 'LOAD': 1, 'OPTIONS': 2, 'EXIT': 3 };
+  const items = menuItems(), n = items.length, ICON = { 'NEW GAME': 0, 'LOAD': 1, 'LEVEL EDITOR': 4, 'OPTIONS': 2, 'EXIT': 3 };
   items.forEach((label, i) => {
     const r = btnRect(i, n), sel = i === menuSel, lift = sel ? -8 : 0;
     ctx.fillStyle = 'rgba(0,0,0,.25)'; rr(r.x + 3, r.y + 7, r.w, r.h, 8); ctx.fill();

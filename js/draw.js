@@ -11,18 +11,76 @@ function drawWorld() {
   ctx.fillStyle = w === 'dry' ? '#c2b25a' : w === 'rain' ? '#2f9e5a' : '#4ade80';
   ctx.fillRect(-40, -40, W + 80, H + 80);
   const p = plot();
-  for (let r = p.r0; r <= p.r1; r++) for (let c = p.c0; c <= p.c1; c++) {
-    ctx.fillStyle = w === 'rain' ? '#5b3a1a' : w === 'dry' ? '#a0743c' : '#8B5A2B';
+  // ground layer (editor-authored tiles, default grass)
+  const grassCol = w === 'dry' ? '#c2b25a' : w === 'rain' ? '#2f9e5a' : '#4ade80';
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const gid = lvlGround(c, r);
+    ctx.fillStyle = gid === 'grass' ? grassCol : findType(GROUND_TYPES, gid).color;
     ctx.fillRect(c * T, r * T, T, T);
-    ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 2; ctx.strokeRect(c * T, r * T, T, T);
   }
-  // bin + grocer
-  ctx.fillStyle = '#4a5568'; ctx.fillRect(bin.col * T, bin.row * T, T, T);
-  ctx.fillStyle = '#2d3748'; ctx.fillRect(bin.col * T + 5, bin.row * T + 5, T - 10, T - 10);
-  txt('BIN', bin.col * T + 25, bin.row * T + 16, 14, '#fff', 'center');
-  ctx.fillStyle = '#f59e0b'; ctx.fillRect((bin.col + 2) * T + 10, bin.row * T + 12, 26, 30);
-  ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc((bin.col + 2) * T + 23, bin.row * T + 8, 9, 0, 7); ctx.fill();
-  txt('Grocer', (bin.col + 2) * T + 23, bin.row * T + 44, 11, '#fff', 'center');
+  // plot layer: plantable soil tiles
+  // Painted plots are authoritative when present; otherwise fall back to the
+  // whole land rect (built-in levels / levels with no painted plots).
+  const painted = paintedPlots();
+  const soilTiles = [];
+  if (painted) {
+    for (const pl of painted) soilTiles.push(pl);
+  } else {
+    for (let r = p.r0; r <= p.r1; r++) for (let c = p.c0; c <= p.c1; c++) soilTiles.push({ c, r });
+  }
+  for (const st of soilTiles) {
+    ctx.fillStyle = w === 'rain' ? '#5b3a1a' : w === 'dry' ? '#a0743c' : '#8B5A2B';
+    ctx.fillRect(st.c * T, st.r * T, T, T);
+    ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 2; ctx.strokeRect(st.c * T, st.r * T, T, T);
+  }
+  // fence border around the land rect
+  const o = landOrigin(L);
+  if (o && L.fence) {
+    const x = o.c * T, y = o.r * T, fw = o.w * T, fh = o.h * T;
+    ctx.strokeStyle = '#92400e'; ctx.lineWidth = 4; ctx.strokeRect(x - 3, y - 3, fw + 6, fh + 6);
+    ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.strokeRect(x, y, fw, fh);
+  }
+  // objects
+  const objs = lvlObjects();
+  for (const k in objs) {
+    const q = parseKey(k), id = objs[k];
+    const x = q.c * T, y = q.r * T;
+    if (id === 'bin') {
+      ctx.fillStyle = '#4a5568'; ctx.fillRect(x, y, T, T);
+      ctx.fillStyle = '#2d3748'; ctx.fillRect(x + 5, y + 5, T - 10, T - 10);
+      txt('BIN', x + T / 2, y + 16, 14, '#fff', 'center');
+    } else if (id === 'grocer') {
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(x + 10, y + 12, 26, 30);
+      ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(x + 23, y + 8, 9, 0, 7); ctx.fill();
+      txt('Grocer', x + T / 2, y + 44, 11, '#fff', 'center');
+    } else if (id === 'tree') {
+      ctx.fillStyle = '#7c4a21'; ctx.fillRect(x + 22, y + 28, 6, 18);
+      ctx.fillStyle = '#16a34a'; ctx.beginPath(); ctx.arc(x + T / 2, y + 24, 16, 0, 7); ctx.fill();
+      ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(x + T / 2 - 5, y + 19, 9, 0, 7); ctx.fill();
+    } else if (id === 'rock') {
+      ctx.fillStyle = '#6b7280'; ctx.beginPath();
+      ctx.moveTo(x + 10, y + 38); ctx.lineTo(x + 18, y + 16); ctx.lineTo(x + 32, y + 12);
+      ctx.lineTo(x + 42, y + 30); ctx.lineTo(x + 36, y + 38); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 2; ctx.stroke();
+    } else if (id === 'fence') {
+      ctx.fillStyle = '#92400e'; ctx.fillRect(x + 4, y + 22, 42, 5);
+      ctx.fillRect(x + 4, y + 32, 42, 5);
+      ctx.fillStyle = '#b45309'; ctx.fillRect(x + 12, y + 12, 6, 32); ctx.fillRect(x + 32, y + 12, 6, 32);
+    }
+  }
+  // fallback bin/grocer for levels that never defined them
+  if (!L.bin || !objs[keyOf(L.bin.col, L.bin.row)]) {
+    const b = binTile();
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(b.col * T, b.row * T, T, T);
+    ctx.fillStyle = '#2d3748'; ctx.fillRect(b.col * T + 5, b.row * T + 5, T - 10, T - 10);
+    txt('BIN', b.col * T + 25, b.row * T + 16, 14, '#fff', 'center');
+  }
+  if (!L.grocer || !objs[keyOf(L.grocer.col, L.grocer.row)]) {
+    const g = grocerTile();
+    ctx.fillStyle = '#f59e0b'; ctx.fillRect(g.col * T + 10, g.row * T + 12, 26, 30);
+    ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(g.col * T + 23, g.row * T + 8, 9, 0, 7); ctx.fill();
+    txt('Grocer', g.col * T + 23, g.row * T + 44, 11, '#fff', 'center');
+  }
   // crops
   for (const k in crops) {
     const [c, r] = k.split(',').map(Number), cr = crops[k], d = CROPS[cr.type], f = cr.age / d.grow;
@@ -75,6 +133,7 @@ function draw() {
   if (state === 'MENU') { drawMenu(); return; }
   if (state === 'SLOTS') { drawSlots(); return; }
   if (state === 'LEVELS') { drawLevels(); return; }
+  if (state === 'EDITOR') { edDraw(); return; }
   if (state === 'CONFIRM') { drawBack(dlg.back); drawDialog(); return; }
   if (state === 'OPTIONS') { drawOptions(); return; }
   if (state === 'EXIT') {
