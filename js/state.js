@@ -9,6 +9,6 @@ let crops = {}, timeLeft = 0, earned = 0, rainTimer = 0, rainCd = 0, flash = 0, 
 let evFired = {}, pestTimer = 0, frostTimer = 0;
 let droughtTimer = 0, growthTimer = 0, elapsedTime = 0;
 let toastMsg = '', toastT = 0, shake = 0, tAll = 0, moving = false;
-const player = { x: 924, y: 540, w: 72, h: 54, facing: 'UP', bag: [] };
+const player = { x: 385, y: 300, w: 30, h: 30, facing: 'UP', bag: [] };
 const keys = {};
 

@@ -1,7 +1,7 @@
 // ---------- Draw ----------
 function txt(s,x,y,size = 20,col = '#fff',align = 'left') {
   ctx.font = 'bold ' + size + 'px system-ui,sans-serif'; ctx.textAlign = align; ctx.textBaseline = 'top';
-  ctx.lineWidth = 4; ctx.strokeStyle = '#000'; ctx.strokeText(s, x, y); ctx.fillStyle = col; ctx.fillText(s, x, y);
+  ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = '#000'; ctx.strokeText(s, x, y); ctx.fillStyle = col; ctx.fillText(s, x, y);
 }
 function multi(s,x,y,size,col,align) { s.split('\n').forEach((l, i) => txt(l,x,y + i * (size + 8), size, col, align)); }
 function panel(a = 0.85) { ctx.fillStyle = 'rgba(10,15,25,' + a + ')'; ctx.fillRect(0,0,W,H); }
@@ -9,7 +9,7 @@ function panel(a = 0.85) { ctx.fillStyle = 'rgba(10,15,25,' + a + ')'; ctx.fillR
 function drawWorld() {
   const L = LEVELS[li], w = weather();
   ctx.fillStyle = w === 'dry' ? '#c2b25a' : w === 'rain' ? '#2f9e5a' : '#4ade80';
-  ctx.fillRect(-96,-72,W + 80,H + 80);
+  ctx.fillRect(-40,-40,W + 80,H + 80);
   const p = plot();
   // ground layer (editor-authored tiles, default grass)
   const grassCol = w === 'dry' ? '#c2b25a' : w === 'rain' ? '#2f9e5a' : '#4ade80';
@@ -50,22 +50,22 @@ function drawWorld() {
       ctx.fillStyle = '#2d3748'; ctx.fillRect(x + 5,y + 5,T - 10,T - 10);
       txt('BIN',x + T / 2,y + 16,14,'#fff','center');
     } else if (id === 'grocer') {
-      ctx.fillStyle = '#f59e0b'; ctx.fillRect(x + 10,y + 12,62.4,54);
-      ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(x + 23,y + 8,16.2,0,7); ctx.fill();
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(x + 10,y + 12,26,30);
+      ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(x + 23,y + 8,9,0,7); ctx.fill();
       txt('Grocer',x + T / 2,y + 44,11,'#fff','center');
     } else if (id === 'tree') {
-      ctx.fillStyle = '#7c4a21'; ctx.fillRect(x + 22,y + 28,14.4,32.4);
-      ctx.fillStyle = '#16a34a'; ctx.beginPath(); ctx.arc(x + T / 2,y + 24,28.8,0,7); ctx.fill();
-      ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(x + T / 2 - 5,y + 19,16.2,0,7); ctx.fill();
+      ctx.fillStyle = '#7c4a21'; ctx.fillRect(x + 22,y + 28,6,18);
+      ctx.fillStyle = '#16a34a'; ctx.beginPath(); ctx.arc(x + T / 2,y + 24,16,0,7); ctx.fill();
+      ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(x + T / 2 - 5,y + 19,9,0,7); ctx.fill();
     } else if (id === 'rock') {
       ctx.fillStyle = '#6b7280'; ctx.beginPath();
       ctx.moveTo(x + 10,y + 38); ctx.lineTo(x + 18,y + 16); ctx.lineTo(x + 32,y + 12);
       ctx.lineTo(x + 42,y + 30); ctx.lineTo(x + 36,y + 38); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 2; ctx.stroke();
     } else if (id === 'fence') {
-      ctx.fillStyle = '#92400e'; ctx.fillRect(x + 4,y + 22,100.8,9);
-      ctx.fillRect(x + 4,y + 32,100.8,9);
-      ctx.fillStyle = '#b45309'; ctx.fillRect(x + 12,y + 12,14.4,57.6); ctx.fillRect(x + 32,y + 12,14.4,57.6);
+      ctx.fillStyle = '#92400e'; ctx.fillRect(x + 4,y + 22,42,5);
+      ctx.fillRect(x + 4,y + 32,42,5);
+      ctx.fillStyle = '#b45309'; ctx.fillRect(x + 12,y + 12,6,32); ctx.fillRect(x + 32,y + 12,6,32);
     }
   }
   // fallback bin/grocer for levels that never defined them
@@ -77,24 +77,24 @@ function drawWorld() {
   }
   if (!L.grocer || !objs[keyOf(L.grocer.col, L.grocer.row)]) {
     const g = grocerTile();
-    ctx.fillStyle = '#f59e0b'; ctx.fillRect(g.col * T + 10,g.row * T + 12,62.4,54);
-    ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(g.col * T + 23,g.row * T + 8,16.2,0,7); ctx.fill();
+    ctx.fillStyle = '#f59e0b'; ctx.fillRect(g.col * T + 10,g.row * T + 12,26,30);
+    ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(g.col * T + 23,g.row * T + 8,9,0,7); ctx.fill();
     txt('Grocer',g.col * T + 23,g.row * T + 44,11,'#fff','center');
   }
   // crops
   for (const k in crops) {
     const [c, r] = k.split(',').map(Number), cr = crops[k], d = CROPS[cr.type], f = cr.age / d.grow;
     const cx = c * T + 25, cy = r * T + 25;
-    if (f < 0.4) { ctx.fillStyle = '#22c55e'; ctx.fillRect(cx - 5,cy - 5,24,18); }
-    else if (f < 1) { ctx.fillStyle = '#16a34a'; ctx.fillRect(cx - 10,cy - 10,48,36); }
+    if (f < 0.4) { ctx.fillStyle = '#22c55e'; ctx.fillRect(cx - 5,cy - 5,10,10); }
+    else if (f < 1) { ctx.fillStyle = '#16a34a'; ctx.fillRect(cx - 10,cy - 10,20,20); }
     else {
-      ctx.fillStyle = d.color; ctx.fillRect(cx - 15,cy - 15,72,54);
-      ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(cx - 10,cy - 10,24,18);
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(cx - 15,cy - 15,72,54);
+      ctx.fillStyle = d.color; ctx.fillRect(cx - 15,cy - 15,30,30);
+      ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(cx - 10,cy - 10,10,10);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(cx - 15,cy - 15,30,30);
     }
   }
   // player
-  ctx.fillStyle = '#3b82f6'; ctx.fillRect(player.x,player.y,72,54);
+  ctx.fillStyle = '#3b82f6'; ctx.fillRect(player.x,player.y,player.w,player.h);
   ctx.fillStyle = '#1e3a8a'; const s = 8; let ix = player.x, iy = player.y;
   if (player.facing === 'UP') ix += 11; else if (player.facing === 'DOWN') { ix += 11; iy += 22; }
   else if (player.facing === 'LEFT') iy += 11; else { ix += 22; iy += 11; }
@@ -116,9 +116,9 @@ function drawWeatherFx() {
 function drawHUD() {
   const L = LEVELS[li];
   txt('Level ' + (li + 1) + ': ' + L.name, 14, 8, 16, '#e5e7eb');
-  txt('Earned: ' + earned + ' / ' + L.target,33.6,54,22,earned >= L.target ? '#4ade80' : '#facc15');
+  txt('Earned: ' + earned + ' / ' + L.target,14,30,22,earned >= L.target ? '#4ade80' : '#facc15');
   txt('Bag: ' + player.bag.length + '/' + maxBag(), 14, 58, 20, player.bag.length >= maxBag() ? '#ef4444' : '#93c5fd');
-  txt('Seed: ' + CROPS[seed].name,33.6,151.2,16,'#fff');
+  txt('Seed: ' + CROPS[seed].name,14,84,16,'#fff');
   const bs = [ab.drink && 'Drink', ab.time && 'Head start', lb.shoes && 'Tonic', lb.fert && 'Miracle Mix', lb.bag && 'Basket'].filter(Boolean);
   if (bs.length) txt('Boosts: ' + bs.join(','), 14, 106, 13, '#bbf7d0');
   const m = Math.max(0, Math.ceil(timeLeft));
@@ -126,10 +126,12 @@ function drawHUD() {
   txt(weather() === 'rain' ? 'RAINY' : weather() === 'dry' ? 'DRY' : 'CLEAR', W - 14, 44, 16, '#bae6fd', 'right');
   txt('Grocer (E): rain & boosts', W - 14, 66, 14, '#fde68a', 'right');
   txt('WASD move | SPACE plant | E harvest/chop/deliver/grocer | 1-3 seed',W / 2,H - 24,13,'#e5e7eb','center');
-  if (toastT > 0) txt(toastMsg,W / 2,198,22,'#fff','center');
+  if (toastT > 0) txt(toastMsg,W / 2,110,22,'#fff','center');
 }
+// Base transform: logical (W x H) space -> the actual backing store (see fitCanvas()).
+function baseTransform() { ctx.setTransform(viewSX, 0, 0, viewSY, 0, 0); }
 function draw() {
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+  baseTransform(); ctx.clearRect(0, 0, W, H);
   if (state === 'MENU') { drawMenu(); return; }
   if (state === 'SLOTS') { drawSlots(); return; }
   if (state === 'LEVELS') { drawLevels(); return; }
@@ -138,16 +140,16 @@ function draw() {
   if (state === 'OPTIONS') { drawOptions(); return; }
   if (state === 'EXIT') {
     ctx.fillStyle = '#0b1220'; ctx.fillRect(0,0,W,H);
-    txt('Thanks for playing!',W / 2,414,44,'#facc15','center');
-    txt('You can close this tab now.',W / 2,540,20,'#fff','center');
-    txt('Press ENTER to return to the menu',W / 2,630,18,'#9ca3af','center');
+    txt('Thanks for playing!',W / 2,230,44,'#facc15','center');
+    txt('You can close this tab now.',W / 2,300,20,'#fff','center');
+    txt('Press ENTER to return to the menu',W / 2,350,18,'#9ca3af','center');
     return;
   }
   if (state === 'WIN') {
     ctx.fillStyle = '#14532d'; ctx.fillRect(0,0,W,H);
-    txt('YOU SAVED THE GROCER ECONOMY!',W / 2,360,40,'#facc15','center');
-    txt('Shelves are full again. Thanks,farmer.',W / 2,270,22,'#fff','center');
-    txt('ENTER for main menu',W / 2,648,24,'#fff','center');
+    txt('YOU SAVED THE GROCER ECONOMY!',W / 2,200,40,'#facc15','center');
+    txt('Shelves are full again. Thanks, farmer.',W / 2,270,22,'#fff','center');
+    txt('ENTER for main menu',W / 2,360,24,'#fff','center');
     return;
   }
   // camera bob / shake
@@ -158,15 +160,15 @@ function draw() {
   }
   ctx.translate(Math.round(ox), Math.round(oy));
   drawWorld();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  baseTransform();
   drawWeatherFx();
   if (state === 'PLAYING') drawHUD();
   if (state === 'INTRO') {
     const L = LEVELS[li]; panel();
     txt('Level ' + (li + 1) + ': ' + L.name, W / 2, 120, 40, '#facc15', 'center');
-    multi(L.story,W / 2,360,20,'#fff','center');
-    txt('Target: ' + L.target + ' coins in ' + L.time + 's',W / 2,576,24,'#4ade80','center');
-    txt('Press ENTER to begin',W / 2,756,24,'#fff','center');
+    multi(L.story,W / 2,200,20,'#fff','center');
+    txt('Target: ' + L.target + ' coins in ' + L.time + 's',W / 2,320,24,'#4ade80','center');
+    txt('Press ENTER to begin',W / 2,420,24,'#fff','center');
   }
   if (state === 'SHOP') drawMerchant();
   if (state === 'GROCER') { drawHUD(); drawGrocer(); }

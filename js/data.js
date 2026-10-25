@@ -3,14 +3,31 @@ const T = 50, COLS = 16, ROWS = 12, W = 800, H = 600;
 const bin = { col: 7, row: 1 };
 const GROCER_TILE = { col: 9, row: 1 };
 
-// Convert a mouse event's client position to canvas-internal coordinates,
-// accounting for CSS display scaling (object-fit: contain, width:100vw, etc.).
+// ---------- Responsive canvas ----------
+// The game logic always runs in a fixed W x H (800x600) logical space. The canvas
+// element is sized to the largest W:H box that fits the window (so it is never
+// stretched; the page background shows as letterbox bars), and its backing store is
+// rendered at the real device-pixel size so it stays sharp in fullscreen / hi-dpi.
+let viewSX = 1, viewSY = 1; // logical px -> backing-store px (applied in draw())
+function fitCanvas() {
+  if (!cv.style) return;
+  const vw = window.innerWidth || W, vh = window.innerHeight || H;
+  const s = Math.min(vw / W, vh / H);
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = Math.max(1, Math.floor(W * s)), cssH = Math.max(1, Math.floor(H * s));
+  cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
+  const bw = Math.round(cssW * dpr), bh = Math.round(cssH * dpr);
+  if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+  viewSX = cv.width / W; viewSY = cv.height / H;
+}
+addEventListener('resize', fitCanvas);
+document.addEventListener('fullscreenchange', fitCanvas);
+
+// Convert a mouse event's client position to logical (W x H) coordinates. Because the
+// canvas box is exactly the letterboxed game area, this is a straight linear map.
 function mpos(e) {
   const r = cv.getBoundingClientRect();
-  const scale = Math.min(r.width / W, r.height / H);
-  const ox = (r.width  - W * scale) / 2;
-  const oy = (r.height - H * scale) / 2;
-  return { x: (e.clientX - r.left - ox) / scale, y: (e.clientY - r.top - oy) / scale };
+  return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
 }
 
 // ---------- Data ----------

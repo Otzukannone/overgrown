@@ -4,14 +4,15 @@ const EDITOR_KEY = 'overgrown_levels';
 // GROUND_TYPES / OBJECT_TYPES / EVENT_TYPES / findType / keyOf / parseKey
 // now live in data.js so the runtime and the editor share one source of truth.
 function clampLand(l) {
-  l.w = Math.max(3, Math.min(24, Math.round(l.w) || 3));
-  l.h = Math.max(3, Math.min(24, Math.round(l.h) || 3));
+  // the playfield is a COLS x ROWS grid, so land can never be bigger than that
+  l.w = Math.max(3, Math.min(COLS, Math.round(l.w) || 3));
+  l.h = Math.max(3, Math.min(ROWS, Math.round(l.h) || 3));
   return l;
 }
 function newLevelDef(name) {
   return {
     name: name || 'New Level', time: 60, target: 150, weather: 'clear',
-    land: { w: 10, h: 10, offset: { x: 140, y: 120 } }, fence: true,
+    land: { w: 10, h: 8, offset: { x: 150, y: 100 } }, fence: true,
     plots: [], ground: {}, objects: {},
     events: [{ id: 'rain', time: 20, chance: 0.5, random: true, enabled: true }],
     start: { x: 170, y: 170 },
@@ -233,8 +234,10 @@ function edPointer(cx, cy) {
   else if (ed.layer === 1) { if (ed.tool === 'erase') { const pl = edEnsure().plots; const i = pl.findIndex(p => p.c === tX && p.r === tY); if (i >= 0) pl.splice(i, 1); } else togglePlot(tX, tY); }
   else { if (ed.tool === 'erase') setObject(tX, tY, null); else setObject(tX, tY, ed.brush); }
 }
+// Toolbar geometry shared by edToolbarClick() and edDrawToolbar(): 10 buttons must fit in W.
+const ED_TB = { bw: 74, gap: 3, x0: 8, y: 6, h: 30 };
 function edToolbarClick(mx) {
-  const bw = 76, gap = 7, x0 = 8;
+  const bw = ED_TB.bw, gap = ED_TB.gap, x0 = ED_TB.x0;
   const items = ['LAYR','TOOL','LAND','FENCE','TIME','TARGET','EVENT','SAVE','TEST','BACK'];
   for (let i = 0; i < items.length; i++) { const x = x0 + i * (bw + gap); if (mx >= x && mx <= x + bw) { edToolbarAct(items[i]); return; } }
 }
@@ -318,11 +321,11 @@ function edDrawMap() {
   edDrawToolbar();
   const brushName = ed.layer === 0 ? findType(GROUND_TYPES, ed.brush).name
     : ed.layer === 2 ? findType(OBJECT_TYPES, ed.brush).name : 'Plot';
-  txt('LAYER ' + ['GROUND','PLOTS','OBJECTS'][ed.layer] + '  TOOL ' + ed.tool.toUpperCase() + '  BRUSH ' + brushName.toUpperCase() + ' (B cycles)  TILE [' + ed.cx + ',' + ed.cy + '] ' + (inLand(ed.cx, ed.cy) ? 'IN LAND' : 'OUTSIDE'), 10, H - 6, 13, '#e5e7eb');
+  txt('LAYER ' + ['GROUND','PLOTS','OBJECTS'][ed.layer] + '  TOOL ' + ed.tool.toUpperCase() + '  BRUSH ' + brushName.toUpperCase() + ' (B cycles)  TILE [' + ed.cx + ',' + ed.cy + '] ' + (inLand(ed.cx, ed.cy) ? 'IN LAND' : 'OUTSIDE'), 10, H - 22, 13, '#e5e7eb');
   if (ed.msgT > 0) { ed.msgT -= 0.02; txt(ed.msg,W / 2,72,16,'#facc15','center'); }
 }
 function edDrawToolbar() {
-  const bw = 76, gap = 7, x0 = 8, y = 6, h = 30;
+  const { bw, gap, x0, y, h } = ED_TB;
   const L = edEnsure();
   const items = [
     'LAYER ' + (ed.layer + 1), 'TOOL ' + ed.tool.toUpperCase(), 'LAND SIZE', 'FENCE ' + (L.fence ? 'ON' : 'OFF'),
@@ -333,7 +336,7 @@ function edDrawToolbar() {
     ctx.fillStyle = '#374151'; ctx.fillRect(x,y,bw,h);
     ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2; ctx.strokeRect(x,y,bw,h);
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = 'bold 11px system-ui'; ctx.fillText(items[i], x + bw / 2, y + h / 2);
+    ctx.font = 'bold 10px system-ui'; ctx.fillText(items[i], x + bw / 2, y + h / 2);
   }
 }
 
@@ -344,8 +347,8 @@ function edDrawPanel(title, rows) {
   txt(title,px + 14,py + 14,18,'#facc15');
   let yy = py + 44;
   for (const r of rows) {
-    ctx.fillStyle = '#1f2937'; ctx.fillRect(px + 14,yy,pw - 28,46.8);
-    ctx.strokeStyle = '#6b7280'; ctx.strokeRect(px + 14,yy,pw - 28,46.8);
+    ctx.fillStyle = '#1f2937'; ctx.fillRect(px + 14,yy,pw - 28,26);
+    ctx.strokeStyle = '#6b7280'; ctx.strokeRect(px + 14,yy,pw - 28,26);
     txt(r.label,px + 24,yy + 6,14,'#e5e7eb');
     txt(r.value,px + pw - 24,yy + 6,14,r.col || '#9ca3af','right');
     yy += 34;
@@ -366,7 +369,7 @@ function edDrawCfg() {
   ];
   edDrawPanel('CONFIGURE LEVEL', rows);
   txt('Arrows/WASD adjust land | F toggle fence | M back',W - 300 + 14,H - 30,13,'#9ca3af');
-  if (ed.msgT > 0) txt(ed.msg,24,H - 6,13,'#e5e7eb');
+  if (ed.msgT > 0) txt(ed.msg,24,H - 46,13,'#e5e7eb');
 }
 function edDrawEvt() {
   const L = edEnsure();
@@ -397,7 +400,7 @@ function edDrawEvt() {
     yy += 28;
   }
   txt('Up/Down select | T type | [ ] time |,. chance | E on/off | R random | A add | Del remove | M back',W - 300 + 14,H - 30,12,'#9ca3af');
-  if (ed.msgT > 0) txt(ed.msg,24,H - 6,13,'#e5e7eb');
+  if (ed.msgT > 0) txt(ed.msg,24,H - 46,13,'#e5e7eb');
 }
 function edDraw() {
   if (ed.mode === 'MAP') edDrawMap();
