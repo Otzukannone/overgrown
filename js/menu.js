@@ -37,17 +37,17 @@ function slotDelete(i) {
 }
 function lvPick(i) { if (!unlocked(i)) toast('Locked - clear the previous level first'); else { li = i; state = 'INTRO'; } }
 
-const btnRect = (i, n) => { const bw = 125, bh = 95, gap = 14, x0 = (W - (n * bw + (n - 1) * gap)) / 2; return { x: x0 + i * (bw + gap), y: 450, w: bw, h: bh }; };
-const optRect = i => ({ x: 200, y: 200 + i * 70, w: 400, h: 54 });
-const backRect = { x: 300, y: 420, w: 200, h: 54 };
-const slotRect = i => ({ x: 60 + i * 240, y: 170, w: 220, h: 230 });
-const delRect = i => { const r = slotRect(i); return { x: r.x + 30, y: r.y + 185, w: 160, h: 34 }; };
-const slotBack = { x: 300, y: 470, w: 200, h: 50 };
-const lvMenuRect = { x: 20, y: 20, w: 120, h: 42 };
-const lvShopRect = { x: W - 190, y: 20, w: 170, h: 42 };
-const yesRect = { x: 230, y: 340, w: 140, h: 50 };
-const noRect = { x: 430, y: 340, w: 140, h: 50 };
-const levelPos = i => ({ x: 130 + (i % 4) * 180, y: 260 + Math.floor(i / 4) * 170 + ((i % 4) % 2 ? -40 : 40) });
+const btnRect = (i, n) => { const bw = 300, bh = 171, gap = 34, x0 = (W - (n * bw + (n - 1) * gap)) / 2; return { x: x0 + i * (bw + gap), y: 810, w: bw, h: bh }; };
+const optRect = i => ({ x: 480, y: 360 + i * 126, w: 960, h: 97 });
+const backRect = { x: 720, y: 756, w: 480, h: 97 };
+const slotRect = i => ({ x: 144 + i * 576, y: 306, w: 528, h: 414 });
+const delRect = i => { const r = slotRect(i); return { x: r.x + 72, y: r.y + 333, w: 384, h: 61 }; };
+const slotBack = { x: 720, y: 846, w: 480, h: 90 };
+const lvMenuRect = { x: 48, y: 36, w: 288, h: 76 };
+const lvShopRect = { x: W - 456, y: 36, w: 408, h: 76 };
+const yesRect = { x: 552, y: 612, w: 336, h: 90 };
+const noRect = { x: 1032, y: 612, w: 336, h: 90 };
+const levelPos = i => ({ x: 312 + (i % 4) * 432, y: 468 + Math.floor(i / 4) * 306 + ((i % 4) % 2 ? -72 : 72) });
 const inR = (p, r) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
 function mpos(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; }
 

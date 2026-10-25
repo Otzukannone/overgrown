@@ -277,49 +277,49 @@ function edTest() {
 // draw
 function edDrawButton(x, y, w, h, label, hot) {
   ctx.fillStyle = hot ? '#b45309' : '#374151';
-  ctx.fillRect(x, y, w, h);
-  ctx.strokeStyle = hot ? '#fbbf24' : '#6b7280'; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
+  ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle = hot ? '#fbbf24' : '#6b7280'; ctx.lineWidth = 2; ctx.strokeRect(x,y,w,h);
   ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.font = 'bold 12px system-ui'; ctx.fillText(label, x + w / 2, y + h / 2);
 }
 function edDrawMap() {
   const L = edEnsure(), land = L.land;
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1f6fd6'); g.addColorStop(1, '#a8dcff');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const gc = groundAt(c, r);
     const gt = findType(GROUND_TYPES, gc);
-    ctx.fillStyle = gt.color; ctx.fillRect(c * T, r * T, T, T);
-    ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.strokeRect(c * T, r * T, T, T);
+    ctx.fillStyle = gt.color; ctx.fillRect(c * T,r * T,T,T);
+    ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.strokeRect(c * T,r * T,T,T);
   }
   const ox = land.offset.x, oy = land.offset.y, wpx = land.w * T, hpx = land.h * T;
-  ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(ox, oy, wpx, hpx);
+  ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(ox,oy,wpx,hpx);
   if (L.fence) {
     ctx.strokeStyle = '#92400e'; ctx.lineWidth = 4;
-    ctx.strokeRect(ox - 3, oy - 3, wpx + 6, hpx + 6);
+    ctx.strokeRect(ox - 3,oy - 3,wpx + 6,hpx + 6);
     ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2;
-    ctx.strokeRect(ox, oy, wpx, hpx);
+    ctx.strokeRect(ox,oy,wpx,hpx);
   }
   for (const p of L.plots) {
-    ctx.fillStyle = 'rgba(34,197,94,.55)'; ctx.fillRect(p.c * T, p.r * T, T, T);
-    ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3; ctx.strokeRect(p.c * T, p.r * T, T, T);
+    ctx.fillStyle = 'rgba(34,197,94,.55)'; ctx.fillRect(p.c * T,p.r * T,T,T);
+    ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3; ctx.strokeRect(p.c * T,p.r * T,T,T);
   }
   for (const k in L.objects) {
     const p = parseKey(k), ot = findType(OBJECT_TYPES, L.objects[k]);
     const cx = p.c * T + T / 2, cy = p.r * T + T / 2;
-    ctx.fillStyle = ot.color; ctx.beginPath(); ctx.arc(cx, cy, T * 0.34, 0, 7); ctx.fill();
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, T * 0.34, 0, 7); ctx.stroke();
+    ctx.fillStyle = ot.color; ctx.beginPath(); ctx.arc(cx,cy,T * 0.34,0,7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx,cy,T * 0.34,0,7); ctx.stroke();
     ctx.fillStyle = '#000'; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText(ot.id[0].toUpperCase(), cx, cy + 3);
   }
-  ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(L.start.x, L.start.y, 10, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(L.start.x, L.start.y, 10, 0, 7); ctx.stroke();
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(ed.cx * T, ed.cy * T, T, T);
-  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(ed.cx * T, ed.cy * T, T, T);
+  ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(L.start.x,L.start.y,18,0,7); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(L.start.x,L.start.y,18,0,7); ctx.stroke();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(ed.cx * T,ed.cy * T,T,T);
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(ed.cx * T,ed.cy * T,T,T);
   edDrawToolbar();
   const brushName = ed.layer === 0 ? findType(GROUND_TYPES, ed.brush).name
     : ed.layer === 2 ? findType(OBJECT_TYPES, ed.brush).name : 'Plot';
-  txt('LAYER ' + ['GROUND', 'PLOTS', 'OBJECTS'][ed.layer] + '  TOOL ' + ed.tool.toUpperCase() + '  BRUSH ' + brushName.toUpperCase() + ' (B cycles)  TILE [' + ed.cx + ',' + ed.cy + '] ' + (inLand(ed.cx, ed.cy) ? 'IN LAND' : 'OUTSIDE'), 10, H - 6, 13, '#e5e7eb');
-  if (ed.msgT > 0) { ed.msgT -= 0.02; txt(ed.msg, W / 2, 40, 16, '#facc15', 'center'); }
+  txt('LAYER ' + ['GROUND','PLOTS','OBJECTS'][ed.layer] + '  TOOL ' + ed.tool.toUpperCase() + '  BRUSH ' + brushName.toUpperCase() + ' (B cycles)  TILE [' + ed.cx + ',' + ed.cy + '] ' + (inLand(ed.cx, ed.cy) ? 'IN LAND' : 'OUTSIDE'), 10, H - 6, 13, '#e5e7eb');
+  if (ed.msgT > 0) { ed.msgT -= 0.02; txt(ed.msg,W / 2,72,16,'#facc15','center'); }
 }
 function edDrawToolbar() {
   const bw = 76, gap = 7, x0 = 8, y = 6, h = 30;
@@ -330,8 +330,8 @@ function edDrawToolbar() {
   ];
   for (let i = 0; i < items.length; i++) {
     const x = x0 + i * (bw + gap);
-    ctx.fillStyle = '#374151'; ctx.fillRect(x, y, bw, h);
-    ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2; ctx.strokeRect(x, y, bw, h);
+    ctx.fillStyle = '#374151'; ctx.fillRect(x,y,bw,h);
+    ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2; ctx.strokeRect(x,y,bw,h);
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = 'bold 11px system-ui'; ctx.fillText(items[i], x + bw / 2, y + h / 2);
   }
@@ -339,15 +339,15 @@ function edDrawToolbar() {
 
 function edDrawPanel(title, rows) {
   const px = W - 300, py = 40, pw = 290, ph = H - 80;
-  ctx.fillStyle = 'rgba(15,23,35,.92)'; ctx.fillRect(px, py, pw, ph);
-  ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2; ctx.strokeRect(px, py, pw, ph);
-  txt(title, px + 14, py + 14, 18, '#facc15');
+  ctx.fillStyle = 'rgba(15,23,35,.92)'; ctx.fillRect(px,py,pw,ph);
+  ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2; ctx.strokeRect(px,py,pw,ph);
+  txt(title,px + 14,py + 14,18,'#facc15');
   let yy = py + 44;
   for (const r of rows) {
-    ctx.fillStyle = '#1f2937'; ctx.fillRect(px + 14, yy, pw - 28, 26);
-    ctx.strokeStyle = '#6b7280'; ctx.strokeRect(px + 14, yy, pw - 28, 26);
-    txt(r.label, px + 24, yy + 6, 14, '#e5e7eb');
-    txt(r.value, px + pw - 24, yy + 6, 14, r.col || '#9ca3af', 'right');
+    ctx.fillStyle = '#1f2937'; ctx.fillRect(px + 14,yy,pw - 28,46.8);
+    ctx.strokeStyle = '#6b7280'; ctx.strokeRect(px + 14,yy,pw - 28,46.8);
+    txt(r.label,px + 24,yy + 6,14,'#e5e7eb');
+    txt(r.value,px + pw - 24,yy + 6,14,r.col || '#9ca3af','right');
     yy += 34;
   }
   return { px, py, pw, ph };
@@ -365,8 +365,8 @@ function edDrawCfg() {
     { label: 'WEATHER', value: L.weather },
   ];
   edDrawPanel('CONFIGURE LEVEL', rows);
-  txt('Arrows/WASD adjust land | F toggle fence | M back', W - 300 + 14, H - 30, 13, '#9ca3af');
-  if (ed.msgT > 0) txt(ed.msg, 10, H - 6, 13, '#e5e7eb');
+  txt('Arrows/WASD adjust land | F toggle fence | M back',W - 300 + 14,H - 30,13,'#9ca3af');
+  if (ed.msgT > 0) txt(ed.msg,24,H - 6,13,'#e5e7eb');
 }
 function edDrawEvt() {
   const L = edEnsure();
@@ -381,14 +381,14 @@ function edDrawEvt() {
     { label: 'ENABLED', value: sel ? (sel.enabled ? 'ON' : 'OFF') : '-', col: sel && sel.enabled ? '#4ade80' : '#fca5a5' },
   ]);
   let yy = 110;
-  txt('EVENT LIST', W - 300 + 14, yy, 15, '#facc15'); yy += 24;
+  txt('EVENT LIST',W - 300 + 14,yy,15,'#facc15'); yy += 24;
   for (let i = 0; i < L.events.length; i++) {
     const ev = L.events[i], et2 = findType(EVENT_TYPES, ev.id);
     const isSel = i === ed.selEvent;
     const rx = W - 300 + 14, rw = 262, rh = 24;
     ctx.fillStyle = isSel ? '#b45309' : '#1f2937';
-    ctx.fillRect(rx, yy, rw, rh);
-    ctx.strokeStyle = isSel ? '#fbbf24' : '#6b7280'; ctx.strokeRect(rx, yy, rw, rh);
+    ctx.fillRect(rx,yy,rw,rh);
+    ctx.strokeStyle = isSel ? '#fbbf24' : '#6b7280'; ctx.strokeRect(rx,yy,rw,rh);
     ctx.fillStyle = isSel ? '#fbbf24' : et2.color;
     ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'left';
     ctx.fillText((i + 1) + '. ' + et2.name.toUpperCase(), rx + 8, yy + 6);
@@ -396,8 +396,8 @@ function edDrawEvt() {
     ctx.fillText('t:' + ev.time + 's  ch:' + Math.round(ev.chance * 100) + '%  ' + (ev.random ? 'RANDOM' : 'FIXED') + '  ' + (ev.enabled ? 'ON' : 'OFF'), rx + 8, yy + 17);
     yy += 28;
   }
-  txt('Up/Down select | T type | [ ] time | , . chance | E on/off | R random | A add | Del remove | M back', W - 300 + 14, H - 30, 12, '#9ca3af');
-  if (ed.msgT > 0) txt(ed.msg, 10, H - 6, 13, '#e5e7eb');
+  txt('Up/Down select | T type | [ ] time |,. chance | E on/off | R random | A add | Del remove | M back',W - 300 + 14,H - 30,12,'#9ca3af');
+  if (ed.msgT > 0) txt(ed.msg,24,H - 6,13,'#e5e7eb');
 }
 function edDraw() {
   if (ed.mode === 'MAP') edDrawMap();

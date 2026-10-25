@@ -3,6 +3,7 @@ addEventListener('keydown', e => {
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   keys[e.code] = true;
   if (e.repeat) return;
+  if (e.code === 'F11') { e.preventDefault(); toggleFullscreen(); return; }
   if (e.code === 'Escape') {
     if (state === 'CONFIRM') closeDlg(false);
     else if (state === 'GROCER') state = 'PLAYING';
@@ -90,3 +91,11 @@ function callRain() {
   else toast('The Pawang failed... sky stays dry.');
 }
 
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(_ => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
