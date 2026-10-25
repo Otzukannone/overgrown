@@ -3,6 +3,16 @@ const T = 50, COLS = 16, ROWS = 12, W = 800, H = 600;
 const bin = { col: 7, row: 1 };
 const GROCER_TILE = { col: 9, row: 1 };
 
+// Convert a mouse event's client position to canvas-internal coordinates,
+// accounting for CSS display scaling (object-fit: contain, width:100vw, etc.).
+function mpos(e) {
+  const r = cv.getBoundingClientRect();
+  const scale = Math.min(r.width / W, r.height / H);
+  const ox = (r.width  - W * scale) / 2;
+  const oy = (r.height - H * scale) / 2;
+  return { x: (e.clientX - r.left - ox) / scale, y: (e.clientY - r.top - oy) / scale };
+}
+
 // ---------- Data ----------
 const CROPS = {
   tomato: { name: 'Tomato', grow: 7,  value: 8, color: '#ef4444' },
