@@ -5,29 +5,33 @@ const GROCER_TILE = { col: 9, row: 1 };
 
 // ---------- Responsive canvas ----------
 // The game logic always runs in a fixed W x H (800x600) logical space. The canvas
-// element is sized to the largest W:H box that fits the window (so it is never
-// stretched; the page background shows as letterbox bars), and its backing store is
-// rendered at the real device-pixel size so it stays sharp in fullscreen / hi-dpi.
-let viewSX = 1, viewSY = 1; // logical px -> backing-store px (applied in draw())
+// element fills the browser window. fitCanvas() applies a UNIFORM scale so the
+// 800x600 game content is never stretched; it is centered and any extra space
+// (wider or taller windows) is filled with extended background drawn in draw().
+let viewSX = 1, viewSY = 1; // uniform logical px -> backing-store px scale
+let viewOX = 0, viewOY = 0; // centering offset in backing-store px
 function fitCanvas() {
   if (!cv.style) return;
   const vw = window.innerWidth || W, vh = window.innerHeight || H;
-  const s = Math.min(vw / W, vh / H);
   const dpr = window.devicePixelRatio || 1;
-  const cssW = Math.max(1, Math.floor(W * s)), cssH = Math.max(1, Math.floor(H * s));
-  cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
-  const bw = Math.round(cssW * dpr), bh = Math.round(cssH * dpr);
+  cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
+  const bw = Math.round(vw * dpr), bh = Math.round(vh * dpr);
   if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
-  viewSX = cv.width / W; viewSY = cv.height / H;
+  // Uniform scale: fit 800x600 inside the canvas without stretching.
+  const s = Math.min(cv.width / W, cv.height / H);
+  viewSX = s; viewSY = s;
+  viewOX = (cv.width - W * s) / 2; viewOY = (cv.height - H * s) / 2;
 }
 addEventListener('resize', fitCanvas);
 document.addEventListener('fullscreenchange', fitCanvas);
 
-// Convert a mouse event's client position to logical (W x H) coordinates. Because the
-// canvas box is exactly the letterboxed game area, this is a straight linear map.
+// Convert a mouse event's client position to logical (W x H) coordinates, undoing
+// the uniform scale and centering offset applied by fitCanvas / baseTransform().
 function mpos(e) {
   const r = cv.getBoundingClientRect();
-  return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
+  const bx = (e.clientX - r.left) * (cv.width / r.width);
+  const by = (e.clientY - r.top) * (cv.height / r.height);
+  return { x: (bx - viewOX) / viewSX, y: (by - viewOY) / viewSY };
 }
 
 // ---------- Data ----------

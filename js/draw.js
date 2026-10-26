@@ -129,9 +129,52 @@ function drawHUD() {
   if (toastT > 0) txt(toastMsg,W / 2,110,22,'#fff','center');
 }
 // Base transform: logical (W x H) space -> the actual backing store (see fitCanvas()).
-function baseTransform() { ctx.setTransform(viewSX, 0, 0, viewSY, 0, 0); }
+// Applies uniform scale + centering offset so the game is never stretched.
+function baseTransform() { ctx.setTransform(viewSX, 0, 0, viewSY, viewOX, viewOY); }
+
+// Draw extended background that fills the entire canvas (beyond the 800x600 game area).
+// Called with identity transform before baseTransform() so it reaches the edges.
+function drawExtendedBackground() {
+  const cw = cv.width, ch = cv.height;
+  // Sky gradient filling the whole canvas
+  const g = ctx.createLinearGradient(0, 0, 0, ch);
+  g.addColorStop(0, '#1f6fd6');
+  g.addColorStop(1, '#a8dcff');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, cw, ch);
+  // Distant stars across the full width
+  ctx.fillStyle = '#fff';
+  for (let i = 0; i < 40; i++) {
+    const x = ((i * 137) % cw), y = ((i * 53) % 160);
+    const a = 0.4 + 0.5 * Math.abs(Math.sin(tAll * 2 + i));
+    ctx.globalAlpha = a;
+    ctx.fillRect(x, y, 7.2, 5.4);
+  }
+  ctx.globalAlpha = 1;
+  // Clouds drifting across the full width
+  ctx.fillStyle = '#fff';
+  [[40, 120, 1.1], [300, 330, 1.4], [560, 80, 0.9], [120, 400, 1.2], [680, 300, 1.0],
+   [cw - 400, 200, 1.3], [cw - 700, 450, 1.1], [cw - 200, 100, 0.8]].forEach(([x, y, s]) => {
+    const cx = ((x + tAll * s * 20) % (cw + 400)) - 200;
+    ctx.beginPath();
+    ctx.arc(cx + 0 * s, y, 40 * s, 0, 7); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 38 * s, y - 14 * s, 34 * s, 0, 7); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 76 * s, y, 38 * s, 0, 7); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 34 * s, y + 10 * s, 36 * s, 0, 7); ctx.fill();
+  });
+}
+
 function draw() {
-  baseTransform(); ctx.clearRect(0, 0, W, H);
+  // Identity transform: clear and paint the full canvas (extends beyond 800x600).
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  drawExtendedBackground();
+
+  // Apply the uniform (non-stretched) game transform.
+  baseTransform();
   if (state === 'MENU') { drawMenu(); return; }
   if (state === 'SLOTS') { drawSlots(); return; }
   if (state === 'LEVELS') { drawLevels(); return; }
