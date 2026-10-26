@@ -171,7 +171,22 @@ function draw() {
   // Identity transform: clear and paint the full canvas (extends beyond 800x600).
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, cv.width, cv.height);
-  drawExtendedBackground();
+
+  // Full-canvas background per state, applied before the game transform.
+  // MENU / PLAYING / EDITOR show the extended sky around the game area.
+  // EXIT / WIN fill the whole window with their solid colours.
+  // All other states (SLOTS, LEVELS, CONFIRM, OPTIONS, SHOP, GROCER) get a
+  // dark full-canvas overlay so nothing shows beyond the 800x600 game area.
+  if (state === 'EXIT') {
+    ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, cv.width, cv.height);
+  } else if (state === 'WIN') {
+    ctx.fillStyle = '#14532d'; ctx.fillRect(0, 0, cv.width, cv.height);
+  } else if (state === 'MENU' || state === 'PLAYING' || state === 'EDITOR') {
+    drawExtendedBackground();
+  } else {
+    ctx.fillStyle = 'rgba(10,15,25,0.85)';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+  }
 
   // Apply the uniform (non-stretched) game transform.
   baseTransform();
@@ -182,14 +197,12 @@ function draw() {
   if (state === 'CONFIRM') { drawBack(dlg.back); drawDialog(); return; }
   if (state === 'OPTIONS') { drawOptions(); return; }
   if (state === 'EXIT') {
-    ctx.fillStyle = '#0b1220'; ctx.fillRect(0,0,W,H);
     txt('Thanks for playing!',W / 2,230,44,'#facc15','center');
     txt('You can close this tab now.',W / 2,300,20,'#fff','center');
     txt('Press ENTER to return to the menu',W / 2,350,18,'#9ca3af','center');
     return;
   }
   if (state === 'WIN') {
-    ctx.fillStyle = '#14532d'; ctx.fillRect(0,0,W,H);
     txt('YOU SAVED THE GROCER ECONOMY!',W / 2,200,40,'#facc15','center');
     txt('Shelves are full again. Thanks, farmer.',W / 2,270,22,'#fff','center');
     txt('ENTER for main menu',W / 2,360,24,'#fff','center');
