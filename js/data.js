@@ -1,40 +1,35 @@
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
-const T = 50, COLS = 16, ROWS = 12, W = 800, H = 600;
+const T = 50;
+let W = 800, H = 600, COLS = 16, ROWS = 12;
 const bin = { col: 7, row: 1 };
 const GROCER_TILE = { col: 9, row: 1 };
 
 // ---------- Responsive canvas ----------
-// The game logic always runs in a fixed W x H (800x600) logical space. The canvas
-// element fills the browser window. fitCanvas() applies a UNIFORM scale so the
-// 800x600 game content is never stretched; it is centered and any extra space
-// (wider or taller windows) is filled with extended background drawn in draw().
-let viewSX = 1, viewSY = 1; // uniform logical px -> backing-store px scale
-let viewOX = 0, viewOY = 0; // centering offset in backing-store px
+// The game canvas fills the browser window. W, H, COLS, ROWS are updated on
+// every resize so the game world itself expands to show more content on larger
+// screens (never stretched; more tiles become visible).
 function fitCanvas() {
   if (!cv.style) return;
-  const vw = window.innerWidth || W, vh = window.innerHeight || H;
+  const vw = window.innerWidth, vh = window.innerHeight;
   const dpr = window.devicePixelRatio || 1;
   cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
   const bw = Math.round(vw * dpr), bh = Math.round(vh * dpr);
   if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
-  // Uniform scale: fit 800x600 inside the canvas without stretching.
-  const s = Math.min(cv.width / W, cv.height / H);
-  viewSX = s; viewSY = s;
-  viewOX = (cv.width - W * s) / 2; viewOY = (cv.height - H * s) / 2;
+  // Logical size matches the CSS pixel size of the window.
+  W = vw; H = vh;
+  COLS = Math.floor(W / T);
+  ROWS = Math.floor(H / T);
 }
 addEventListener('resize', fitCanvas);
 document.addEventListener('fullscreenchange', fitCanvas);
+fitCanvas();
 
-// Convert a mouse event's client position to full-screen logical coordinates
-// (0,0 = top-left of the canvas, scaled by viewSX). The centering offset is
-// NOT subtracted here so that UI screens (which draw without the offset) can
-// hit-test directly. Gameplay code that needs 800x600 space subtracts the
-// offset itself (see editor.js).
+// Convert a mouse event's client position to logical canvas coordinates
+// (0,0 = top-left of canvas). No scaling or offset — W/H already match the
+// screen, so hit-testing matches drawn positions directly.
 function mpos(e) {
   const r = cv.getBoundingClientRect();
-  const bx = (e.clientX - r.left) * (cv.width / r.width);
-  const by = (e.clientY - r.top) * (cv.height / r.height);
-  return { x: bx / viewSX, y: by / viewSY };
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
 }
 
 // ---------- Data ----------
