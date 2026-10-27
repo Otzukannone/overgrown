@@ -147,13 +147,13 @@ function inLand(c, r) {
 addEventListener('mousemove', e => {
   if (!ed.open) return;
   const mp = mpos(e);
-  ed.mx = mp.x; ed.my = mp.y;
+  ed.mx = mp.x - viewOX / viewSX; ed.my = mp.y - viewOY / viewSY;
   if (ed.mode === 'MAP') edPointer(ed.mx, ed.my);
 });
 cv.addEventListener('mousedown', e => {
   if (!ed.open || ed.mode !== 'MAP') return;
   const mp = mpos(e);
-  const mx = mp.x, my = mp.y;
+  const mx = mp.x - viewOX / viewSX, my = mp.y - viewOY / viewSY;
   if (my < 40) { edToolbarClick(mx); return; }
   ed.drag = true; ed.lastPaint = null; edPointer(mx, my);
 });

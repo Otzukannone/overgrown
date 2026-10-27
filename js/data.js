@@ -25,13 +25,16 @@ function fitCanvas() {
 addEventListener('resize', fitCanvas);
 document.addEventListener('fullscreenchange', fitCanvas);
 
-// Convert a mouse event's client position to logical (W x H) coordinates, undoing
-// the uniform scale and centering offset applied by fitCanvas / baseTransform().
+// Convert a mouse event's client position to full-screen logical coordinates
+// (0,0 = top-left of the canvas, scaled by viewSX). The centering offset is
+// NOT subtracted here so that UI screens (which draw without the offset) can
+// hit-test directly. Gameplay code that needs 800x600 space subtracts the
+// offset itself (see editor.js).
 function mpos(e) {
   const r = cv.getBoundingClientRect();
   const bx = (e.clientX - r.left) * (cv.width / r.width);
   const by = (e.clientY - r.top) * (cv.height / r.height);
-  return { x: (bx - viewOX) / viewSX, y: (by - viewOY) / viewSY };
+  return { x: bx / viewSX, y: by / viewSY };
 }
 
 // ---------- Data ----------
