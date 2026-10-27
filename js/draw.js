@@ -128,6 +128,11 @@ function drawHUD() {
   txt('WASD move | SPACE plant | E harvest/chop/deliver/grocer | 1-3 seed',W / 2,H - 24,13,'#e5e7eb','center');
   if (toastT > 0) txt(toastMsg,W / 2,110,22,'#fff','center');
 }
+// Full logical canvas dimensions (for UI positioning that spans the whole screen).
+// Since viewSX === viewSY (uniform scale), FW/FH give the screen size in game units.
+function fullW() { return cv.width / viewSX; }
+function fullH() { return cv.height / viewSY; }
+
 // Base transform: logical (W x H) space -> the actual backing store (see fitCanvas()).
 // Applies uniform scale + centering offset so the game is never stretched.
 function baseTransform() { ctx.setTransform(viewSX, 0, 0, viewSY, viewOX, viewOY); }
@@ -168,28 +173,34 @@ function drawExtendedBackground() {
 }
 
 function draw() {
-  // Identity transform: clear and paint the full canvas (extends beyond 800x600).
+  // Identity transform: clear and paint the full canvas.
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, cv.width, cv.height);
 
-  // Full-canvas background per state, applied before the game transform.
-  // MENU / PLAYING / EDITOR show the extended sky around the game area.
-  // EXIT / WIN fill the whole window with their solid colours.
-  // All other states (SLOTS, LEVELS, CONFIRM, OPTIONS, SHOP, GROCER) get a
-  // dark full-canvas overlay so nothing shows beyond the 800x600 game area.
+  // ---------- SINGLE background layer (fills the entire window) ----------
   if (state === 'EXIT') {
     ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, cv.width, cv.height);
   } else if (state === 'WIN') {
     ctx.fillStyle = '#14532d'; ctx.fillRect(0, 0, cv.width, cv.height);
-  } else if (state === 'MENU' || state === 'PLAYING' || state === 'EDITOR') {
+  } else if (state === 'MENU' || state === 'PLAYING' || state === 'EDITOR' || state === 'INTRO') {
     drawExtendedBackground();
   } else {
+    // SLOTS, LEVELS, CONFIRM, OPTIONS, SHOP, GROCER: dark full-canvas background
     ctx.fillStyle = 'rgba(10,15,25,0.85)';
     ctx.fillRect(0, 0, cv.width, cv.height);
   }
 
   // Apply the uniform (non-stretched) game transform.
   baseTransform();
+
+  // For UI screens (not PLAYING/EDITOR), remove the centering offset so that
+  // logical (0,0) maps to screen (0,0). UI elements then span the full window
+  // using fullW()/fullH() instead of being trapped in the centered 800x600 box.
+  const isGame = (state === 'PLAYING' || state === 'EDITOR');
+  if (!isGame) {
+    ctx.translate(-viewOX / viewSX, -viewOY / viewSY);
+  }
+
   if (state === 'MENU') { drawMenu(); return; }
   if (state === 'SLOTS') { drawSlots(); return; }
   if (state === 'LEVELS') { drawLevels(); return; }
@@ -197,18 +208,18 @@ function draw() {
   if (state === 'CONFIRM') { drawBack(dlg.back); drawDialog(); return; }
   if (state === 'OPTIONS') { drawOptions(); return; }
   if (state === 'EXIT') {
-    txt('Thanks for playing!',W / 2,230,44,'#facc15','center');
-    txt('You can close this tab now.',W / 2,300,20,'#fff','center');
-    txt('Press ENTER to return to the menu',W / 2,350,18,'#9ca3af','center');
+    txt('Thanks for playing!', fullW() / 2, 230, 44, '#facc15', 'center');
+    txt('You can close this tab now.', fullW() / 2, 300, 20, '#fff', 'center');
+    txt('Press ENTER to return to the menu', fullW() / 2, 350, 18, '#9ca3af', 'center');
     return;
   }
   if (state === 'WIN') {
-    txt('YOU SAVED THE GROCER ECONOMY!',W / 2,200,40,'#facc15','center');
-    txt('Shelves are full again. Thanks, farmer.',W / 2,270,22,'#fff','center');
-    txt('ENTER for main menu',W / 2,360,24,'#fff','center');
+    txt('YOU SAVED THE GROCER ECONOMY!', fullW() / 2, 200, 40, '#facc15', 'center');
+    txt('Shelves are full again. Thanks, farmer.', fullW() / 2, 270, 22, '#fff', 'center');
+    txt('ENTER for main menu', fullW() / 2, 360, 24, '#fff', 'center');
     return;
   }
-  // camera bob / shake
+  // camera bob / shake (PLAYING only)
   let ox = 0, oy = 0;
   if (state === 'PLAYING' && opts.camera) {
     ox -= camX; oy -= camY;
@@ -221,10 +232,10 @@ function draw() {
   if (state === 'PLAYING') drawHUD();
   if (state === 'INTRO') {
     const L = LEVELS[li]; panel();
-    txt('Level ' + (li + 1) + ': ' + L.name, W / 2, 120, 40, '#facc15', 'center');
-    multi(L.story,W / 2,200,20,'#fff','center');
-    txt('Target: ' + L.target + ' coins in ' + L.time + 's',W / 2,320,24,'#4ade80','center');
-    txt('Press ENTER to begin',W / 2,420,24,'#fff','center');
+    txt('Level ' + (li + 1) + ': ' + L.name, fullW() / 2, 120, 40, '#facc15', 'center');
+    multi(L.story, fullW() / 2, 200, 20, '#fff', 'center');
+    txt('Target: ' + L.target + ' coins in ' + L.time + 's', fullW() / 2, 320, 24, '#4ade80', 'center');
+    txt('Press ENTER to begin', fullW() / 2, 420, 24, '#fff', 'center');
   }
   if (state === 'SHOP') drawMerchant();
   if (state === 'GROCER') { drawHUD(); drawGrocer(); }

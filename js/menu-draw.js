@@ -36,18 +36,18 @@ function bigTitle(s, x, y, size) {
   ctx.fillStyle = 'rgba(255,220,150,.45)'; ctx.fillText(s, x - 2, y - 2);
 }
 function drawMenu() {
-  drawSky();
-  // title board (same proportions as the reference: wide wooden sign)
-  const bx = 150, by = 45, bw = 500, bh = 230;
+  // title board (wide wooden sign, centered horizontally across the full screen)
+  const bw = 500, bh = 230;
+  const bx = fullW() / 2 - bw / 2, by = 45;
   ctx.fillStyle = 'rgba(0,0,0,.25)'; rr(bx + 6,by + 10,bw,bh,32.4); ctx.fill();
   ctx.fillStyle = '#c0702c'; rr(bx,by,bw,bh,32.4); ctx.fill();
   ctx.strokeStyle = '#7a3a10'; ctx.lineWidth = 4; rr(bx,by,bw,bh,32.4); ctx.stroke();
   ctx.fillStyle = '#e0b068'; rr(bx + 14,by + 14,bw - 28,bh - 28,18); ctx.fill();
   ctx.strokeStyle = 'rgba(122,58,16,.35)'; ctx.lineWidth = 2;
   for (let k = 1; k < 5; k++) { ctx.beginPath(); ctx.moveTo(bx + 14,by + 14 + k * (bh - 28) / 5); ctx.lineTo(bx + bw - 14,by + 14 + k * (bh - 28) / 5); ctx.stroke(); }
-  leaf(bx + 20, by + 18, -0.8); leaf(bx + bw - 20, by + 18, 0.8); leaf(bx + 30, by + bh - 14, 0.5); leaf(bx + bw - 30, by + bh - 14, -0.5); leaf(W / 2, by - 4, -1.57);
-  bigTitle('FARM', W / 2, by + 22, 84);
-  bigTitle('RUSH', W / 2, by + 112, 84);
+  leaf(bx + 20, by + 18, -0.8); leaf(bx + bw - 20, by + 18, 0.8); leaf(bx + 30, by + bh - 14, 0.5); leaf(bx + bw - 30, by + bh - 14, -0.5); leaf(fullW() / 2, by - 4, -1.57);
+  bigTitle('FARM', fullW() / 2, by + 22, 84);
+  bigTitle('RUSH', fullW() / 2, by + 112, 84);
   // buttons
   const items = menuItems(), n = items.length, ICON = { 'NEW GAME': 0, 'LOAD': 1, 'LEVEL EDITOR': 4, 'OPTIONS': 2, 'EXIT': 3 };
   items.forEach((label, i) => {
@@ -59,8 +59,8 @@ function drawMenu() {
     txt(label,r.x + r.w / 2,r.y + 14 + lift,label.length > 6 ? 17 : 22,'#fff','center');
     drawIcon(ICON[label], r.x + r.w / 2, r.y + 64 + lift);
   });
-  txt('Left/Right + Enter,or click',W / 2,568,13,'#fff','center');
-  if (toastT > 0) txt(toastMsg,W / 2,720,22,'#fff','center');
+  txt('Left/Right + Enter,or click', fullW() / 2, 568, 13, '#fff', 'center');
+  if (toastT > 0) txt(toastMsg, fullW() / 2, 720, 22, '#fff', 'center');
 }
 function woodBtn(r, label, sel, size = 22) {
   ctx.fillStyle = sel ? '#f2b45a' : '#d99a4a'; rr(r.x,r.y,r.w,r.h,14.4); ctx.fill();
@@ -68,9 +68,8 @@ function woodBtn(r, label, sel, size = 22) {
   txt(label,r.x + r.w / 2,r.y + r.h / 2 - size / 2 - 2,size,'#fff','center');
 }
 function drawSlots() {
-  drawSky(); ctx.fillStyle = 'rgba(10,20,40,.45)'; ctx.fillRect(0,0,W,H);
-  txt(slotMode === 'new' ? 'CHOOSE A SAVE SLOT' : 'LOAD GAME',W / 2,66,38,'#facc15','center');
-  txt(slotMode === 'new' ? 'Pick an empty slot for your new farm' : 'Pick a save to continue  (X = delete)', W / 2, 120, 16, '#fff', 'center');
+  txt(slotMode === 'new' ? 'CHOOSE A SAVE SLOT' : 'LOAD GAME', fullW() / 2, 66, 38, '#facc15', 'center');
+  txt(slotMode === 'new' ? 'Pick an empty slot for your new farm' : 'Pick a save to continue  (X = delete)', fullW() / 2, 120, 16, '#fff', 'center');
   for (let i = 0; i < 3; i++) {
     const r = slotRect(i), d = readSlot(i), sel = i === slotSel, lift = sel ? -8 : 0, cx = r.x + r.w / 2;
     ctx.globalAlpha = (slotMode === 'new' && d) || (slotMode === 'load' && !d) ? 0.55 : 1;
@@ -87,15 +86,14 @@ function drawSlots() {
     ctx.globalAlpha = 1;
     if (slotMode === 'load' && d) { const b = delRect(i); ctx.fillStyle = '#b91c1c'; rr(b.x,b.y,b.w,b.h,8); ctx.fill(); txt('DELETE',b.x + b.w / 2,b.y + 8,16,'#fff','center'); }
   }
-  woodBtn(slotBack, 'BACK', false);
-  if (toastT > 0) txt(toastMsg,W / 2,425,20,'#fff','center');
+  woodBtn(slotBack(), 'BACK', false);
+  if (toastT > 0) txt(toastMsg, fullW() / 2, 425, 20, '#fff', 'center');
 }
 function drawLevels() {
-  drawSky();
-  ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.ellipse(180,H + 40,345,150,0,0,7); ctx.fill();
-  ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.ellipse(650,H + 60,315,150,0,0,7); ctx.fill();
-  txt('SELECT LEVEL',W / 2,22,34,'#facc15','center');
-  txt('Coins: ' + money,W / 2,64,18,'#fff','center');
+  ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.ellipse(180, fullH() + 40, 345, 150, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.ellipse(650, fullH() + 60, 315, 150, 0, 0, 7); ctx.fill();
+  txt('SELECT LEVEL', fullW() / 2, 22, 34, '#facc15', 'center');
+  txt('Coins: ' + money, fullW() / 2, 64, 18, '#fff', 'center');
   ctx.setLineDash([10, 10]); ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 5; ctx.beginPath();
   LEVELS.forEach((_, i) => { const q = levelPos(i); if (i) ctx.lineTo(q.x,q.y); else ctx.moveTo(q.x,q.y); }); ctx.stroke(); ctx.setLineDash([]);
   LEVELS.forEach((L, i) => {
@@ -108,18 +106,22 @@ function drawLevels() {
     for (let k = 0; k < 3; k++) txt('\u2605',q.x + (k - 1) * 26, q.y + R + 6, 24, k < st ? '#facc15' : '#4b5563', 'center');
   });
   const L = LEVELS[lvSel];
-  txt('Level ' + (lvSel + 1) + ': ' + L.name, W / 2, 520, 22, '#fff', 'center');
-  txt('Target ' + L.target + ' coins  |  ' + L.time + 's  |  ' + L.weather.toUpperCase(), W / 2, 550, 16, '#fef9c3', 'center');
+  txt('Level ' + (lvSel + 1) + ': ' + L.name, fullW() / 2, 520, 22, '#fff', 'center');
+  txt('Target ' + L.target + ' coins  |  ' + L.time + 's  |  ' + L.weather.toUpperCase(), fullW() / 2, 550, 16, '#fef9c3', 'center');
   woodBtn(lvMenuRect, 'MENU', false, 18); woodBtn(lvShopRect, 'MERCHANT [B]', false, 18);
-  if (toastT > 0) txt(toastMsg,W / 2,180,20,'#fff','center');
+  if (toastT > 0) txt(toastMsg, fullW() / 2, 180, 20, '#fff', 'center');
 }
 function drawDialog() {
-  ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle = '#c0702c'; rr(160,200,480,230,16); ctx.fill();
-  ctx.strokeStyle = '#7a3a10'; ctx.lineWidth = 4; rr(160,200,480,230,16); ctx.stroke();
-  ctx.fillStyle = '#e0b068'; rr(174,214,452,202,10); ctx.fill();
-  txt(dlg.msg,W / 2,255,30,'#5a2a0a','center');
-  woodBtn(yesRect, 'YES', dlg.sel === 0); woodBtn(noRect, 'NO', dlg.sel === 1);
+  // Dialog centered horizontally across the full screen
+  const dw = 480, dh = 230;
+  const dx = fullW() / 2 - dw / 2;
+  const dy = 200;
+  ctx.fillStyle = '#c0702c'; rr(dx, dy, dw, dh, 16); ctx.fill();
+  ctx.strokeStyle = '#7a3a10'; ctx.lineWidth = 4; rr(dx, dy, dw, dh, 16); ctx.stroke();
+  ctx.fillStyle = '#e0b068'; rr(dx + 14, dy + 14, dw - 28, dh - 28, 10); ctx.fill();
+  txt(dlg.msg, fullW() / 2, 255, 30, '#5a2a0a', 'center');
+  woodBtn({ x: dx + 70, y: 340, w: 140, h: 50 }, 'YES', dlg.sel === 0);
+  woodBtn({ x: dx + 270, y: 340, w: 140, h: 50 }, 'NO', dlg.sel === 1);
 }
 function drawBack(s) { if (s === 'SLOTS') drawSlots(); else drawMenu(); }
 const owned = it => it.kind === 'level' ? (boost[it.id] ? 1 : 0) : up[it.id];
@@ -146,7 +148,7 @@ function buyGrocer(i) {
   saveGame();
 }
 const rowRect = i => ({ x: 90, y: 150 + i * 40, w: 620, h: 36 });
-const shopBack = { x: 290, y: 500, w: 220, h: 46 };
+const shopBack = () => { const cx = fullW() / 2; return { x: cx - 110, y: 500, w: 220, h: 46 }; };
 function drawRow(i, label, right, col) {
   const r = rowRect(i);
   ctx.fillStyle = 'rgba(255,255,255,.08)'; rr(r.x,r.y,r.w,r.h,10.8); ctx.fill();
@@ -155,40 +157,39 @@ function drawRow(i, label, right, col) {
 }
 function drawMerchant() {
   panel(0.93);
-  if (lastResult) txt(lastResult,W / 2,16,15,'#4ade80','center');
-  txt('Merchant',W / 2,46,34,'#facc15','center');
-  txt('Coins: ' + money + '    Permanent upgrades & one-level boosts',W / 2,100,16,'#fff','center');
+  if (lastResult) txt(lastResult, fullW() / 2, 16, 15, '#4ade80', 'center');
+  txt('Merchant', fullW() / 2, 46, 34, '#facc15', 'center');
+  txt('Coins: ' + money + '    Permanent upgrades & one-level boosts', fullW() / 2, 100, 16, '#fff', 'center');
   SHOP.forEach((it, i) => {
     const sold = owned(it) >= it.max, tag = it.kind === 'level' ? 'NEXT LEVEL' : 'PERMANENT';
     const col = sold ? '#6b7280' : money >= cost(it) ? '#fff' : '#f87171';
     drawRow(i, it.name + '  (' + tag + ')', sold ? (it.kind === 'level' ? 'READY' : 'MAX') : cost(it) + ' coins', col);
   });
-  woodBtn(shopBack, 'CONTINUE', true, 20);
-  if (toastT > 0) txt(toastMsg,W / 2,460,18,'#fde68a','center');
+  woodBtn(shopBack(), 'CONTINUE', true, 20);
+  if (toastT > 0) txt(toastMsg, fullW() / 2, 460, 18, '#fde68a', 'center');
 }
 function drawGrocer() {
   panel(0.88);
-  txt('Grocer Stall',W / 2,46,34,'#facc15','center');
-  txt('Lasts until this level ends    |    Coins: ' + money,W / 2,100,16,'#fff','center');
+  txt('Grocer Stall', fullW() / 2, 46, 34, '#facc15', 'center');
+  txt('Lasts until this level ends    |    Coins: ' + money, fullW() / 2, 100, 16, '#fff', 'center');
   GROCER.forEach((it, i) => {
     const done = it.once && lb[it.id], col = done ? '#6b7280' : money >= it.price ? '#fff' : '#f87171';
     drawRow(i, it.name, done ? 'ACTIVE' : it.price + ' coins', col);
   });
-  woodBtn(shopBack, 'CLOSE [E]', true, 20);
-  if (toastT > 0) txt(toastMsg,W / 2,460,18,'#fde68a','center');
+  woodBtn(shopBack(), 'CLOSE [E]', true, 20);
+  if (toastT > 0) txt(toastMsg, fullW() / 2, 460, 18, '#fde68a', 'center');
 }
 function drawOptions() {
-  drawSky(); ctx.fillStyle = 'rgba(10,20,40,.55)'; ctx.fillRect(0,0,W,H);
-  txt('OPTIONS',W / 2,90,44,'#facc15','center');
+  txt('OPTIONS', fullW() / 2, 90, 44, '#facc15', 'center');
   OPT_ROWS.forEach(([label, key], i) => {
     const r = optRect(i);
-    ctx.fillStyle = '#d99a4a'; rr(r.x,r.y,r.w,r.h,14.4); ctx.fill(); ctx.strokeStyle = '#8a4a1c'; ctx.lineWidth = 3; rr(r.x,r.y,r.w,r.h,14.4); ctx.stroke();
+    ctx.fillStyle = '#d99a4a'; rr(r.x, r.y, r.w, r.h, 14.4); ctx.fill(); ctx.strokeStyle = '#8a4a1c'; ctx.lineWidth = 3; rr(r.x, r.y, r.w, r.h, 14.4); ctx.stroke();
     txt('[' + (i + 1) + '] ' + label, r.x + 18, r.y + 14, 20, '#fff');
-    txt(opts[key] ? 'ON' : 'OFF',r.x + r.w - 18,r.y + 14,20,opts[key] ? '#bbf7d0' : '#fecaca','right');
+    txt(opts[key] ? 'ON' : 'OFF', r.x + r.w - 18, r.y + 14, 20, opts[key] ? '#bbf7d0' : '#fecaca', 'right');
   });
-  const b = backRect;
-  ctx.fillStyle = '#f2b45a'; rr(b.x,b.y,b.w,b.h,14.4); ctx.fill(); ctx.strokeStyle = '#fff7c2'; ctx.lineWidth = 3; rr(b.x,b.y,b.w,b.h,14.4); ctx.stroke();
-  txt('BACK',b.x + b.w / 2,b.y + 14,22,'#fff','center');
-  txt('Esc or Enter to go back',W / 2,520,14,'#fff','center');
+  const b = backRect();
+  ctx.fillStyle = '#f2b45a'; rr(b.x, b.y, b.w, b.h, 14.4); ctx.fill(); ctx.strokeStyle = '#fff7c2'; ctx.lineWidth = 3; rr(b.x, b.y, b.w, b.h, 14.4); ctx.stroke();
+  txt('BACK', b.x + b.w / 2, b.y + 14, 22, '#fff', 'center');
+  txt('Esc or Enter to go back', fullW() / 2, 520, 14, '#fff', 'center');
 }
 

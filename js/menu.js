@@ -37,18 +37,18 @@ function slotDelete(i) {
 }
 function lvPick(i) { if (!unlocked(i)) toast('Locked - clear the previous level first'); else { li = i; state = 'INTRO'; } }
 
-// All UI rects below are in the logical 800x600 space (W x H).
-const btnRect = (i, n) => { const bw = 125, bh = 95, gap = 14, x0 = (W - (n * bw + (n - 1) * gap)) / 2; return { x: x0 + i * (bw + gap), y: 450, w: bw, h: bh }; };
-const optRect = i => ({ x: 200, y: 200 + i * 70, w: 400, h: 54 });
-const backRect = { x: 300, y: 420, w: 200, h: 54 };
-const slotRect = i => ({ x: 60 + i * 240, y: 170, w: 220, h: 230 });
+// All UI rects below use fullW()/fullH() so they span the whole window on any resolution.
+const btnRect = (i, n) => { const bw = 125, bh = 95, gap = 14, x0 = (fullW() - (n * bw + (n - 1) * gap)) / 2; return { x: x0 + i * (bw + gap), y: 450, w: bw, h: bh }; };
+const optRect = i => { const cx = fullW() / 2; return { x: cx - 200, y: 200 + i * 70, w: 400, h: 54 }; };
+const backRect = () => { const cx = fullW() / 2; return { x: cx - 100, y: 420, w: 200, h: 54 }; };
+const slotRect = i => { const cx = fullW() / 2; return { x: cx - 330 + i * 240, y: 170, w: 220, h: 230 }; };
 const delRect = i => { const r = slotRect(i); return { x: r.x + 30, y: r.y + 185, w: 160, h: 34 }; };
-const slotBack = { x: 300, y: 470, w: 200, h: 50 };
+const slotBack = () => { const cx = fullW() / 2; return { x: cx - 100, y: 470, w: 200, h: 50 }; };
 const lvMenuRect = { x: 20, y: 20, w: 120, h: 42 };
-const lvShopRect = { x: W - 190, y: 20, w: 170, h: 42 };
-const yesRect = { x: 230, y: 340, w: 140, h: 50 };
-const noRect = { x: 430, y: 340, w: 140, h: 50 };
-const levelPos = i => ({ x: 130 + (i % 4) * 180, y: 260 + Math.floor(i / 4) * 170 + ((i % 4) % 2 ? -40 : 40) });
+const lvShopRect = () => ({ x: fullW() - 190, y: 20, w: 170, h: 42 });
+const yesRect = () => { const cx = fullW() / 2; return { x: cx - 210, y: 340, w: 140, h: 50 }; };
+const noRect = () => { const cx = fullW() / 2; return { x: cx + 70, y: 340, w: 140, h: 50 }; };
+const levelPos = i => { const cx = fullW() / 2; return { x: cx - 360 + (i % 4) * 180, y: 260 + Math.floor(i / 4) * 170 + ((i % 4) % 2 ? -40 : 40) }; };
 const inR = (p, r) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
 
 cv.addEventListener('mousemove', e => {
@@ -56,16 +56,16 @@ cv.addEventListener('mousemove', e => {
   if (state === 'MENU') { const n = menuItems().length; for (let i = 0; i < n; i++) if (inR(p, btnRect(i, n))) menuSel = i; }
   else if (state === 'SLOTS') { for (let i = 0; i < 3; i++) if (inR(p, slotRect(i))) slotSel = i; }
   else if (state === 'LEVELS') { LEVELS.forEach((_, i) => { const q = levelPos(i); if (Math.hypot(p.x - q.x, p.y - q.y) < 48) lvSel = i; }); }
-  else if (state === 'CONFIRM') { if (inR(p, yesRect)) dlg.sel = 0; if (inR(p, noRect)) dlg.sel = 1; }
+  else if (state === 'CONFIRM') { if (inR(p, yesRect())) dlg.sel = 0; if (inR(p, noRect())) dlg.sel = 1; }
 });
 cv.addEventListener('click', e => {
   const p = mpos(e);
-  if (state === 'SHOP') { SHOP.forEach((_, i) => { if (inR(p, rowRect(i))) buyMerchant(i); }); if (inR(p, shopBack)) goLevels(); return; }
-  if (state === 'GROCER') { GROCER.forEach((_, i) => { if (inR(p, rowRect(i))) buyGrocer(i); }); if (inR(p, shopBack)) state = 'PLAYING'; return; }
+  if (state === 'SHOP') { SHOP.forEach((_, i) => { if (inR(p, rowRect(i))) buyMerchant(i); }); if (inR(p, shopBack())) goLevels(); return; }
+  if (state === 'GROCER') { GROCER.forEach((_, i) => { if (inR(p, rowRect(i))) buyGrocer(i); }); if (inR(p, shopBack())) state = 'PLAYING'; return; }
   if (state === 'MENU') { const items = menuItems(), n = items.length; for (let i = 0; i < n; i++) if (inR(p, btnRect(i, n))) { menuSel = i; menuActivate(items[i]); return; } }
-  else if (state === 'CONFIRM') { if (inR(p, yesRect)) closeDlg(true); else if (inR(p, noRect)) closeDlg(false); }
+  else if (state === 'CONFIRM') { if (inR(p, yesRect())) closeDlg(true); else if (inR(p, noRect())) closeDlg(false); }
   else if (state === 'SLOTS') {
-    if (inR(p, slotBack)) { state = 'MENU'; return; }
+    if (inR(p, slotBack())) { state = 'MENU'; return; }
     for (let i = 0; i < 3; i++) {
       if (slotMode === 'load' && readSlot(i) && inR(p, delRect(i))) { slotDelete(i); return; }
       if (inR(p, slotRect(i))) { slotSel = i; slotPick(i); return; }
@@ -73,12 +73,12 @@ cv.addEventListener('click', e => {
   }
   else if (state === 'LEVELS') {
     if (inR(p, lvMenuRect)) { state = 'MENU'; return; }
-    if (inR(p, lvShopRect)) { lastResult = ''; state = 'SHOP'; return; }
+    if (inR(p, lvShopRect())) { lastResult = ''; state = 'SHOP'; return; }
     LEVELS.forEach((_, i) => { const q = levelPos(i); if (Math.hypot(p.x - q.x, p.y - q.y) < 48) { lvSel = i; lvPick(i); } });
   }
   else if (state === 'OPTIONS') {
     OPT_ROWS.forEach((o, i) => { if (inR(p, optRect(i))) { opts[o[1]] = !opts[o[1]]; saveOpts(); } });
-    if (inR(p, backRect)) state = 'MENU';
+    if (inR(p, backRect())) state = 'MENU';
   } else if (state === 'EXIT') state = 'MENU';
 });
 
